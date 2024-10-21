@@ -1,0 +1,7 @@
+{
+    "workbench.editor.enablePreview": true,
+    "editor.suggest.preview": false,
+    "diffEditor.experimental.useTrueInlineView": false,
+    "accessibility.hideAccessibleView": false,
+    "workbench.view.alwaysShowHeaderActions": true
+}
