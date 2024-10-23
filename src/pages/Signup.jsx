@@ -1,15 +1,15 @@
 // eslint-disable-next-line no-unused-vars
-import React from 'react'
-import '../index.css';
-import UseShowPassword from '../hooks/Showpassword'
-import AppButton from '../components/AppButton'
-import { useAuth } from '../contexts/AuthContext'
-import { useFormik } from 'formik'
-import * as Yup from 'yup'
-import {FaEye, FaEyeSlash} from 'react-icons/fa'
+import React from "react";
+import "../index.css";
+import UseShowPassword from "../hooks/Showpassword";
+// import AppButton from '../components/AppButton'
+import { useAuth } from "../contexts/AuthContext";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const Signup = () => {
-
   const { signup } = useAuth();
   const { showPassword, handleShowPassword } = UseShowPassword();
 
@@ -40,11 +40,10 @@ const Signup = () => {
 
   return (
     // <div>Signup</div>
-    <div className="w-[80%] max-w-[500px] mx-[auto] mt-[5%] shadow-1xl p-3  border-2 rounded-lg border-red-500" >
-
-      <div className="px-5 border-b-2 pb-3 border-violet-500" >
+    <div className="w-[70%] max-w-[500px] mx-[auto] mt-[5%] shadow-1xl p-3 border-2 rounded-lg shadow-lg shadow-sky-100">
+      <div className="px-5 border-b-2 pb-3 border-grey-900 font-Poppins">
         {/* <h2 className="text-black text-xl font-bold text-center">Welcome to LMS</h2> */}
-        <p className="text-200 text-lg font-medium font-sans text-center">
+        <p className="text-200 text-lg text-center font-black">
           Please sign up to get started
         </p>
       </div>
@@ -65,7 +64,9 @@ const Signup = () => {
           onBlur={formik.handleBlur}
         />
         {formik.touched.email && formik.errors.email && (
-          <p className="text-red text-sm font-medium font-sans">{formik.errors.email}</p>
+          <p className="text-sm text-red-600 font-medium font-sans">
+            {formik.errors.email}
+          </p>
         )}
       </div>
       <div className="p-5">
@@ -76,7 +77,7 @@ const Signup = () => {
           Firstname:
         </label>
         <input
-          className="border-2 border-white-900 rounded-lg focus:outline-none w-[100%] p-2 mt-2"
+          className=" hover:border-stone-700 border-2 border-white-900 rounded-lg focus:outline-none w-[100%] p-2 mt-2"
           type="text"
           placeholder="Enter your firstname"
           name="firstname"
@@ -85,7 +86,9 @@ const Signup = () => {
           // onBlur={formik.handleBlur}
         />
         {formik.touched.firstname && formik.errors.firstname && (
-          <p className="text-red-800 text-sm font-medium font-sans">{formik.errors.firstname}</p>
+          <p className="text-red-800 text-sm font-medium font-sans">
+            {formik.errors.firstname}
+          </p>
         )}
       </div>
       <div className="p-5">
@@ -96,7 +99,7 @@ const Signup = () => {
           Lastname:
         </label>
         <input
-          className="border-2 border-white-900 rounded-lg focus:outline-none w-[100%] p-2 mt-2"
+          className=" hover:border-zinc-500 border-2 border-white-900 rounded-lg focus:outline-none w-[100%] p-2 mt-2"
           type="text"
           placeholder="Enter your lastname"
           name="lastname"
@@ -105,7 +108,9 @@ const Signup = () => {
           // onBlur={formik.handleBlur}
         />
         {formik.touched.lastname && formik.errors.lastname && (
-          <p className="text-red-800 text-sm font-medium font-sans">{formik.errors.lastname}</p>
+          <p className="text-red-800 text-sm font-medium font-sans">
+            {formik.errors.lastname}
+          </p>
         )}
       </div>
       <div className="p-5 relative">
@@ -116,7 +121,7 @@ const Signup = () => {
           Password:
         </label>
         <input
-          className="border-2 border-b-rose-300 rounded-lg focus:outline-none w-[100%] p-2 mt-2"
+          className="hover:border-zinc-500 border-2 bhjv rounded-lg focus:outline-none w-[100%] p-2 mt-2"
           type={`${showPassword ? "text" : "password"}`}
           placeholder="Password"
           name="password"
@@ -135,21 +140,24 @@ const Signup = () => {
           <p className="text-red-500">{formik.errors.password}</p>
         )}
       </div>
-      <div className="p-5  justify-center items-center bg-gray rounded-2xl ">
-        <div className="flex flex-col justify-center items-center">
-          <AppButton
-            text={"Signup"}
-            bgColor={"zinc"}
-            textColor={"#222"}
-            fontSize={"lg"}
-            handleClick={formik.handleSubmit}
-            type={"submit"}
-            borderRadius={"md"}
-          />
-        </div>
+      <div className="p-5  justify-center items-center  rounded-2xl ">
+        <button
+          className="bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 px-4 rounded w-[100%]"
+          type="submit"
+        >
+          Signup
+        </button>
+      </div>
+      <div className="flex flex-col justify-center items-center text-center">
+        <p>
+          Already have an account? <br />
+          <Link className="text-sky-500 hover:text-sky-600" to="/login">
+            Login
+          </Link>
+        </p>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Signup
+export default Signup;
