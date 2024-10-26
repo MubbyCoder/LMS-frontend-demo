@@ -41,7 +41,7 @@ const Signup = () => {
   return (
     // <div>Signup</div>
     <div className="w-[70%] max-w-[500px] mx-[auto] mt-[5%] shadow-1xl p-3 border-2 rounded-lg shadow-lg shadow-sky-100">
-      <div className="px-5 border-b-2 pb-3 border-grey-900 font-Poppins">
+      <div className="px-5 border-b-2 pb-3 border-grey-900">
         {/* <h2 className="text-black text-xl font-bold text-center">Welcome to LMS</h2> */}
         <p className="text-200 text-lg text-center font-black">
           Please sign up to get started
@@ -149,7 +149,7 @@ const Signup = () => {
         </button>
       </div>
       <div className="flex flex-col justify-center items-center text-center">
-        <p>
+        <p className="font-semibold text-pretty">
           Already have an account? <br />
           <Link className="text-sky-500 hover:text-sky-600" to="/login">
             Login

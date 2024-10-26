@@ -1,9 +1,13 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useState, useEffect, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { createContext, useState, useContext, useEffect } from "react";
 import axios from "axios";
-import { toast } from "react-toastify";
+import axiosInstance from "../config/axios";
+// import Cookies from "js-cookie";
+// import Cookies from "js-cookie";
+import { useToast } from "@chakra-ui/react";
+import { useNavigate } from "react-router-dom";
+import handleError from "../utils/error";
 
 const AuthContext = createContext();
 
@@ -14,87 +18,153 @@ export const useAuth = () => {
 const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
   const apiUrl = import.meta.env.VITE_API_URL;
-  //   States
-  const [loading, setLoading] = useState(false);
-  const [token, setToken] = useState(null);
+
+  const toast = useToast({
+    position: "top right",
+    // variant: "subtle",
+    duration: 3000,
+    isClosable: true,
+  });
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [loading, setLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
 
   useEffect(() => {
-    setToken(localStorage.getItem("token"));
-    setUser(JSON.parse(localStorage.getItem("user")));
+    const user = localStorage.getItem("user");
+    const userToken = localStorage.getItem("token");
+    if (userToken) {
+      setToken(userToken);
+    }
+    if (user) {
+      setUser(JSON.parse(user));
+    }
   }, []);
-  console.log("Token in auth", token);
-  const signup = async (data) => {
+
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      await checkAuthenticationStatus();
+    };
+
+    checkAuthStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+  const signup = (email, firstname, lastname, password, phoneNumber) => {
+    const body = {
+      email,
+      firstname,
+      lastname,
+      password,
+      phoneNumber,
+    };
     setLoading(true);
     axios
-      .post(`${apiUrl}/auth/signup`, data, {
+      .post(`${apiUrl}/auth/signup`, body, {
+        withCredentials: true,
+      })
+      .then((response) => {
+        setUser(response.data.data);
+        localStorage.setItem("user", JSON.stringify(response.data.data));
+        localStorage.setItem("token", response.data.token);
+        setToken(response.data.token);
+        toast({
+          title: "Account created.",
+          description: "You have successfully created an account.",
+          status: "success",
+        });
+        navigate("/collections");
+      })
+      .catch((error) => {
+        console.log(error);
+        handleError(error, toast);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  const login = async (email, password) => {
+    setLoading(true);
+    const body = {
+      email,
+      password,
+    };
+
+    axios
+      .post(`${apiUrl}/auth/login`, body, {
+        withCredentials: true,
+      })
+      .then((response) => {
+        setUser(response.data.data);
+        localStorage.setItem("user", JSON.stringify(response.data.data));
+        localStorage.setItem("token", response.data.token);
+        setToken(response.data.token);
+        toast({
+          title: "Login successful.",
+          description: "You have successfully logged in.",
+          status: "success",
+        });
+        navigate("/collections");
+      })
+      .catch((error) => {
+        handleError(error, toast);
+      })
+
+      .finally(() => setLoading(false));
+  };
+
+  const checkAuthenticationStatus = async () => {
+    setLoading(true);
+    axios
+      .get(`${apiUrl}/auth/check-auth`, {
+        withCredentials: true,
         headers: {
-          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
       })
-      .then((res) => {
-        console.log(res.data);
-        setToken(res.data.data.token);
-        setUser(res.data.data.user);
-        localStorage.setItem("token", res.data.data.token);
-        localStorage.setItem("user", JSON.stringify(res.data.data.user));
-        toast.success("Signup Successful");
-        navigate("/");
+      .then((response) => {
+        if (response.data.status === "success") {
+          setIsAuthenticated(true);
+        }
       })
-      .catch((err) => {
-        console.log(err);
-        err?.response
-          ? toast.error(err.response.data.message)
-          : toast.error("An Error occured");
+      .catch(() => {
+        // handleError(error, toast);
+        setIsAuthenticated(false);
       })
       .finally(() => {
         setLoading(false);
       });
   };
 
-  const login = async (data) => {
-    setLoading(true);
-    axios
-      .post(`${apiUrl}/auth/login`, data, {
-        headers: {
-          "Content-Type": "application/json",
-        },
+  const logout = async () => {
+    axiosInstance
+      .get(`/auth/logout`, {
+        withCredentials: true,
       })
-      .then((res) => {
-        console.log(res.data);
-        setToken(res.data.data.token);
-        setUser(res.data.data.user);
-        localStorage.setItem("token", res.data.data.token);
-        localStorage.setItem("user", JSON.stringify(res.data.data.user));
-        toast.success("Login Successful");
-        navigate("/");
+      .then(() => {
+        setIsAuthenticated(false);
+        setToken(null);
+        localStorage.removeItem("token");
+        navigate("/login");
+        toast({
+          status: "success",
+          description: "Logout successful",
+        });
       })
-      .catch((err) => {
-        console.log(err);
-        err?.response
-          ? toast.error(err.response.data.message)
-          : toast.error("An Error occured");
-      })
-      .finally(() => {
-        setLoading(false);
+      .catch(() => {
+        toast({
+          status: "error",
+          description: "Logout unsuccessful",
+        });
       });
-  };
-
-  const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    toast.success("Logout Successful");
-    navigate("/login");
   };
 
   const values = {
-    loading,
+    isAuthenticated,
     token,
     user,
+    loading,
     signup,
     login,
+    checkAuthenticationStatus,
     logout,
   };
 
