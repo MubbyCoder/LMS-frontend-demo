@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-unused-vars
 import React from "react";
 import "../index.css";
-import UseShowPassword from "../hooks/Showpassword";
+import UseShowPassword from "../hooks/useShowPassword";
 // import AppButton from '../components/AppButton'
 import { useAuth } from "../contexts/AuthContext";
 import { useFormik } from "formik";
@@ -10,6 +10,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
 const Signup = () => {
+  // const navigate = useNavigate();
   const { signup } = useAuth();
   const { showPassword, handleShowPassword } = UseShowPassword();
 
@@ -151,7 +152,7 @@ const Signup = () => {
       <div className="flex flex-col justify-center items-center text-center">
         <p className="font-semibold text-pretty">
           Already have an account? <br />
-          <Link className="text-sky-500 hover:text-sky-600" to="/login">
+          <Link className="text-sky-500 hover:text-sky-600" to="/Login">
             Login
           </Link>
         </p>

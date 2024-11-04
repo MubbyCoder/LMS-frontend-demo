@@ -3,9 +3,7 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import axios from "axios";
 import axiosInstance from "../config/axios";
-// import Cookies from "js-cookie";
-// import Cookies from "js-cookie";
-import { useToast } from "@chakra-ui/react";
+import {toast} from "react-toastify"
 import { useNavigate } from "react-router-dom";
 import handleError from "../utils/error";
 
@@ -19,12 +17,7 @@ const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
   const apiUrl = import.meta.env.VITE_API_URL;
 
-  const toast = useToast({
-    position: "top right",
-    // variant: "subtle",
-    duration: 3000,
-    isClosable: true,
-  });
+  
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [loading, setLoading] = useState(false);
