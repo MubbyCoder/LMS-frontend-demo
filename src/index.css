@@ -1,7 +1,33 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-.body{
+/* @import '@fortawesome/fontawesome-free/css/all.min.css'; */
+.body {
     font-family: 'Poppins', sans-serif;
     font-weight: 400;
 }
+
+.backG-image {
+    background-image: url('./assets/images/background-image.jpg');
+    background-size: cover;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    /* background-position: center; */
+}
+input[type="number"] {
+    width: 48px;
+    height: 48px;
+    text-align: center;
+    font-size: 1.5rem;
+    border-radius: 50%;
+    border: 1px solid #cbd5e1;
+    outline: none;
+    transition: border-color 0.3s ease;
+  }
+  
+  input[type="number"]:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+  
+  

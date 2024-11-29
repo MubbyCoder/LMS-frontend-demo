@@ -1,164 +1,160 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useState, useContext, useEffect } from "react";
-import axios from "axios";
-import axiosInstance from "../config/axios";
-import {toast} from "react-toastify"
+import { createContext, useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import handleError from "../utils/error";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const AuthContext = createContext();
 
+// Custom Hook to use Auth Context
 export const useAuth = () => {
   return useContext(AuthContext);
 };
 
 const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState(null); // Store email for password recovery
+  const [loading, setLoading] = useState(false); // Manage loading state
+  const [token, setToken] = useState(null); // Authentication token
+  const [user, setUser] = useState(null); // User details
+
   const apiUrl = import.meta.env.VITE_API_URL;
 
-  
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem("token"));
-  const [loading, setLoading] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(null);
-
+  // Initialize state from localStorage when the app loads
   useEffect(() => {
-    const user = localStorage.getItem("user");
-    const userToken = localStorage.getItem("token");
-    if (userToken) {
-      setToken(userToken);
-    }
-    if (user) {
-      setUser(JSON.parse(user));
-    }
+    const storedToken = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+    const storedEmail = localStorage.getItem("email");
+
+    if (storedToken) setToken(storedToken);
+    if (storedUser) setUser(JSON.parse(storedUser));
+    if (storedEmail) setEmail(storedEmail);
   }, []);
 
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      await checkAuthenticationStatus();
-    };
-
-    checkAuthStatus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
-  const signup = (email, firstname, lastname, password, phoneNumber) => {
-    const body = {
-      email,
-      firstname,
-      lastname,
-      password,
-      phoneNumber,
-    };
-    setLoading(true);
-    axios
-      .post(`${apiUrl}/auth/signup`, body, {
-        withCredentials: true,
-      })
-      .then((response) => {
-        setUser(response.data.data);
-        localStorage.setItem("user", JSON.stringify(response.data.data));
-        localStorage.setItem("token", response.data.token);
-        setToken(response.data.token);
-        toast({
-          title: "Account created.",
-          description: "You have successfully created an account.",
-          status: "success",
-        });
-        navigate("/collections");
-      })
-      .catch((error) => {
-        console.log(error);
-        handleError(error, toast);
-      })
-      .finally(() => setLoading(false));
+  // Save token and user to state and localStorage
+  const saveAuthData = (token, user) => {
+    setToken(token);
+    setUser(user);
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(user));
   };
 
-  const login = async (email, password) => {
-    setLoading(true);
-    const body = {
-      email,
-      password,
-    };
-
-    axios
-      .post(`${apiUrl}/auth/login`, body, {
-        withCredentials: true,
-      })
-      .then((response) => {
-        setUser(response.data.data);
-        localStorage.setItem("user", JSON.stringify(response.data.data));
-        localStorage.setItem("token", response.data.token);
-        setToken(response.data.token);
-        toast({
-          title: "Login successful.",
-          description: "You have successfully logged in.",
-          status: "success",
-        });
-        navigate("/collections");
-      })
-      .catch((error) => {
-        handleError(error, toast);
-      })
-
-      .finally(() => setLoading(false));
+  // Handle API errors consistently
+  const handleApiError = (error, defaultMessage) => {
+    console.error(error);
+    toast.error(error?.response?.data?.message || defaultMessage);
   };
 
-  const checkAuthenticationStatus = async () => {
+  // Signup function
+  const signup = async (data) => {
     setLoading(true);
-    axios
-      .get(`${apiUrl}/auth/check-auth`, {
-        withCredentials: true,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((response) => {
-        if (response.data.status === "success") {
-          setIsAuthenticated(true);
-        }
-      })
-      .catch(() => {
-        // handleError(error, toast);
-        setIsAuthenticated(false);
-      })
-      .finally(() => {
-        setLoading(false);
+    try {
+      const response = await axios.post(`${apiUrl}/auth/signup`, data, {
+        headers: { "Content-Type": "application/json" },
       });
+      const { token, user } = response.data.data;
+      saveAuthData(token, user);
+      toast.success("Signup successful!");
+      navigate("/");
+    } catch (error) {
+      handleApiError(error, "Signup failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const logout = async () => {
-    axiosInstance
-      .get(`/auth/logout`, {
-        withCredentials: true,
-      })
-      .then(() => {
-        setIsAuthenticated(false);
-        setToken(null);
-        localStorage.removeItem("token");
-        navigate("/login");
-        toast({
-          status: "success",
-          description: "Logout successful",
-        });
-      })
-      .catch(() => {
-        toast({
-          status: "error",
-          description: "Logout unsuccessful",
-        });
+  // Login function
+  const login = async (data) => {
+    setLoading(true);
+    try {
+      const response = await axios.post(`${apiUrl}/auth/login`, data, {
+        headers: { "Content-Type": "application/json" },
       });
+      const { token, user } = response.data.data;
+      saveAuthData(token, user);
+      toast.success("Login successful!");
+      navigate("/dashboard");
+    } catch (error) {
+      handleApiError(error, "Login failed. Please check your credentials.");
+    } finally {
+      setLoading(false);
+    }
   };
 
+  // Forgot Password function
+  const forgotPassword = async (email) => {
+    setLoading(true);
+    try {
+      await axios.post(`${apiUrl}/auth/forgot-password`, { email });
+      setEmail(email); // Store email in state
+      localStorage.setItem("email", email); // Save email to localStorage
+      toast.success("Verification code sent to your email.");
+      navigate("/verify-code");
+    } catch (error) {
+      handleApiError(error, "Failed to send verification code.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Verify Code function
+  const verifyCode = async (email, verificationCode) => {
+    setLoading(true);
+    try {
+      await axios.post(`${apiUrl}/auth/verifyCode`, { email, verificationCode });
+      toast.success("Verification successful. You can now reset your password.");
+      navigate("/reset-password");
+    } catch (error) {
+      handleApiError(error, "Verification failed. Please check the code.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Reset Password function
+  const resetPassword = async (email, verificationCode, password) => {
+    setLoading(true);
+    try {
+      await axios.patch(`${apiUrl}/auth/resetPassword`, {
+        email,
+        verificationCode,
+        password,
+      });
+      toast.success("Password reset successful! Please log in.");
+      navigate("/login");
+    } catch (error) {
+      handleApiError(error, "Failed to reset password. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Logout function
+  const logout = () => {
+    setToken(null);
+    setUser(null);
+    setEmail(null);
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("email");
+    toast.success("Logged out successfully.");
+    navigate("/login");
+  };
+
+  // Context values
   const values = {
-    isAuthenticated,
+    loading,
     token,
     user,
-    loading,
+    email,
     signup,
     login,
-    checkAuthenticationStatus,
+    forgotPassword,
+    verifyCode,
+    resetPassword,
     logout,
+    setEmail,
   };
 
   return <AuthContext.Provider value={values}>{children}</AuthContext.Provider>;
